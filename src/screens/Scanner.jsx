@@ -21,12 +21,208 @@ function compressImage(file, maxPx = 900, quality = 0.65) {
   })
 }
 
+const css = `
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #0D1B3E;
+    --blue: #2563EB;
+    --blue-light: #EFF6FF;
+    --green: #16A34A;
+    --green-light: #F0FDF4;
+    --red: #DC2626;
+    --red-light: #FEF2F2;
+    --amber-light: #FFFBEB;
+    --muted: #6B7280;
+    --muted-light: #9CA3AF;
+    --border: #E5E7EB;
+    --border-light: #F3F4F6;
+    --surface: #FFFFFF;
+    --bg: #F8FAFC;
+    --text: #111827;
+    --radius-sm: 8px;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  #scanner-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--bg);
+    position: relative;
+  }
+  .walkin-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    padding-top: calc(14px + var(--safe-top));
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 90;
+  }
+  .back-btn {
+    width: 34px; height: 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; color: var(--navy);
+    flex-shrink: 0;
+  }
+  .walkin-title { font-size: 15px; font-weight: 700; color: var(--navy); }
+  .walkin-sub { font-size: 11px; color: var(--muted); }
+  .screen-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(80px + var(--safe-bottom));
+  }
+  .form-wrap {
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .section-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .section-head {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .section-title {
+    font-size: 13px; font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .section-body { padding: 14px 16px; }
+  .scan-area {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .scan-btns { display: flex; }
+  .scan-btn {
+    flex: 1; padding: 14px 10px;
+    background: var(--border-light);
+    border: none; cursor: pointer;
+    font-size: 12px; font-weight: 600;
+    color: var(--navy); font-family: inherit;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 5px;
+    transition: background .12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .scan-btn:first-child { border-right: 1px solid var(--border); }
+  .scan-btn:active { background: var(--border); }
+  .scan-btn-icon { font-size: 22px; }
+  .scan-preview {
+    width: 100%; display: block;
+    max-height: 180px; object-fit: cover;
+    border-top: 1px solid var(--border-light);
+  }
+  .scan-status {
+    padding: 8px 14px;
+    font-size: 12px; font-weight: 600;
+    text-align: center;
+    border-top: 1px solid var(--border-light);
+  }
+  .field-label {
+    display: block;
+    font-size: 11px; font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 6px;
+  }
+  .field-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    -webkit-appearance: none;
+  }
+  .field-input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+  }
+  .field-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    resize: none;
+    line-height: 1.5;
+    transition: border-color .15s, box-shadow .15s;
+    -webkit-appearance: none;
+  }
+  .field-textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+  }
+  .field-row { margin-bottom: 14px; }
+  .field-row:last-child { margin-bottom: 0; }
+  .msg-err {
+    background: var(--red-light);
+    color: #991B1B;
+    border: 1px solid #FECACA;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+  }
+  .btn-save {
+    width: 100%; padding: 15px;
+    background: var(--green);
+    color: white; border: none;
+    border-radius: var(--radius);
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: opacity .12s, transform .08s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-save:active { transform: scale(.98); opacity: .92; }
+  .btn-save:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: white; border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+`
+
 export default function Scanner() {
   const navigate = useNavigate()
   const cameraRef = useRef(null)
   const uploadRef = useRef(null)
   const [preview, setPreview] = useState(null)
-  const [status, setStatus] = useState(null)
+  const [scanStatus, setScanStatus] = useState(null)
   const [form, setForm] = useState({
     name: '', company: '', designation: '',
     email: '', phone: '', city: '', country: '', notes: ''
@@ -34,7 +230,7 @@ export default function Scanner() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const statusStyle = {
+  const statusColors = {
     scanning: { background: '#EFF6FF', color: '#1E40AF' },
     ok:       { background: '#F0FDF4', color: '#166534' },
     warn:     { background: '#FFFBEB', color: '#92400E' },
@@ -45,7 +241,7 @@ export default function Scanner() {
     setForm({ name: '', company: '', designation: '', email: '', phone: '', city: '', country: '', notes: '' })
     setError('')
     setPreview(URL.createObjectURL(file))
-    setStatus({ text: '🔍 Scanning card…', type: 'scanning' })
+    setScanStatus({ text: '🔍 Scanning card…', type: 'scanning' })
     try {
       const b64 = await compressImage(file)
       const res = await fetch(`${API}/mvp/extract-card`, {
@@ -62,12 +258,12 @@ export default function Scanner() {
           designation: c.designation || '', email: c.email || '',
           phone: c.phone || '', city: c.city || '', country: c.country || '',
         }))
-        setStatus({ text: '✓ Card scanned — review and save', type: 'ok' })
+        setScanStatus({ text: '✓ Card scanned — review and save', type: 'ok' })
       } else {
-        setStatus({ text: '⚠ Could not read card — fill manually', type: 'warn' })
+        setScanStatus({ text: '⚠ Could not read card — fill manually', type: 'warn' })
       }
-    } catch (e) {
-      setStatus({ text: '⚠ Scan failed — fill manually', type: 'warn' })
+    } catch {
+      setScanStatus({ text: '⚠ Scan failed — fill manually', type: 'warn' })
     }
   }
 
@@ -89,171 +285,137 @@ export default function Scanner() {
         .from('scans')
         .insert({
           user_id: user.id,
-          contact_name: form.name, contact_company: form.company,
-          contact_title: form.designation, contact_email: form.email,
-          contact_phone: form.phone, iei_score: scored.iei_score,
-          tier: scored.tier, signals: scored.signals || [],
+          contact_name: form.name,
+          contact_company: form.company,
+          contact_title: form.designation,
+          contact_email: form.email,
+          contact_phone: form.phone,
+          iei_score: scored.iei_score,
+          tier: scored.tier,
+          signals: scored.signals || [],
           raw_contact: form,
         })
         .select().single()
       if (dbErr) throw dbErr
       navigate(`/result/${scan.id}`)
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.')
     } finally {
       setSaving(false)
     }
   }
 
+  const fields = [
+    { key: 'name',        label: 'Name *',    placeholder: 'Full name' },
+    { key: 'company',     label: 'Company',   placeholder: 'Company name' },
+    { key: 'designation', label: 'Job Title', placeholder: 'Director, Manager…' },
+    { key: 'email',       label: 'Email',     placeholder: 'email@company.com', type: 'email' },
+    { key: 'phone',       label: 'Phone',     placeholder: '+91 98765 43210',   type: 'tel' },
+    { key: 'city',        label: 'City',      placeholder: 'Mumbai, Milan…' },
+    { key: 'country',     label: 'Country',   placeholder: 'India, UK…' },
+  ]
+
   return (
-    <div style={{
-      minHeight: '100dvh', background: '#F8FAFC',
-      paddingTop: 'calc(env(safe-area-inset-top) + 56px)',
-      paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)',
-    }}>
-      <div style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        paddingTop: 'env(safe-area-inset-top)',
-        background: '#fff', borderBottom: '1px solid #E5E7EB',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 8, background: '#0D1B3E',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontWeight: 800, fontSize: 16,
-          }}>F</div>
+    <>
+      <style>{css}</style>
+      <div id="scanner-shell">
+
+        {/* Sticky header */}
+        <div className="walkin-header">
+          <button className="back-btn" onClick={() => navigate('/scan')}>←</button>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#0D1B3E' }}>Scan Business Card</div>
-            <div style={{ fontSize: 11, color: '#64748B' }}>Fingoh · Booth Intelligence</div>
+            <div className="walkin-title">Walk-in Visitor</div>
+            <div className="walkin-sub">Scan card or enter details</div>
           </div>
         </div>
-      </div>
 
-      <div style={{ padding: '16px' }}>
-        <div style={{
-          background: '#fff', border: '1px solid #E5E7EB',
-          borderRadius: 16, padding: 16, marginBottom: 12,
-        }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#64748B', marginBottom: 12 }}>
-            CAPTURE BUSINESS CARD
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <label style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: 6, padding: '14px 10px', background: '#0D1B3E', color: '#fff',
-              borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-            }}>
-              <span style={{ fontSize: 24 }}>📷</span>
-              <span>Camera</span>
-              <input ref={cameraRef} type="file" accept="image/*" capture="environment"
-                style={{ display: 'none' }} onChange={e => onPhoto(e.target.files[0])} />
-            </label>
-            <label style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: 6, padding: '14px 10px', background: '#F1F5F9', color: '#0D1B3E',
-              border: '1px solid #E5E7EB', borderRadius: 12, cursor: 'pointer',
-              fontSize: 13, fontWeight: 600,
-            }}>
-              <span style={{ fontSize: 24 }}>🖼</span>
-              <span>Upload</span>
-              <input ref={uploadRef} type="file" accept="image/*"
-                style={{ display: 'none' }} onChange={e => onPhoto(e.target.files[0])} />
-            </label>
-          </div>
-          {preview && (
-            <img src={preview} alt="Card preview" style={{
-              width: '100%', marginTop: 12, borderRadius: 10,
-              border: '1px solid #E5E7EB', objectFit: 'contain', maxHeight: 180,
-            }} />
-          )}
-          {status && (
-            <div style={{
-              marginTop: 10, padding: '8px 12px', borderRadius: 8,
-              fontSize: 13, fontWeight: 500, ...statusStyle[status.type],
-            }}>
-              {status.text}
-            </div>
-          )}
-        </div>
+        <div className="screen-content">
+          <form className="form-wrap" onSubmit={handleSave}>
 
-        <form onSubmit={handleSave}>
-          <div style={{
-            background: '#fff', border: '1px solid #E5E7EB',
-            borderRadius: 16, padding: 16, marginBottom: 12,
-          }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748B', marginBottom: 12 }}>
-              CONTACT DETAILS
-            </div>
-            {[
-              { key: 'name',        label: 'Name *',    placeholder: 'Full name' },
-              { key: 'company',     label: 'Company',   placeholder: 'Company name' },
-              { key: 'designation', label: 'Job Title', placeholder: 'Director, Manager…' },
-              { key: 'email',       label: 'Email',     placeholder: 'email@company.com', type: 'email' },
-              { key: 'phone',       label: 'Phone',     placeholder: '+91 98765 43210',   type: 'tel' },
-              { key: 'city',        label: 'City',      placeholder: 'Mumbai, Milan…' },
-              { key: 'country',     label: 'Country',   placeholder: 'India, UK…' },
-            ].map(f => (
-              <div key={f.key} style={{ marginBottom: 12 }}>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 4 }}>
-                  {f.label}
-                </label>
-                <input
-                  type={f.type || 'text'}
-                  value={form[f.key]}
-                  onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
-                  placeholder={f.placeholder}
-                  style={{
-                    width: '100%', fontSize: 16, padding: '10px 12px',
-                    border: '1px solid #E5E7EB', borderRadius: 8,
-                    background: '#F8FAFC', color: '#0D1B3E',
-                    boxSizing: 'border-box', outline: 'none',
-                  }}
-                />
+            {/* Scan section */}
+            <div className="section-card">
+              <div className="section-head">
+                <div className="section-title">Scan Business Card</div>
               </div>
-            ))}
-            <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 4 }}>
-                Notes
-              </label>
-              <textarea
-                value={form.notes}
-                onChange={e => setForm(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Quick note about this lead…"
-                rows={2}
-                style={{
-                  width: '100%', fontSize: 16, padding: '10px 12px',
-                  border: '1px solid #E5E7EB', borderRadius: 8,
-                  background: '#F8FAFC', color: '#0D1B3E',
-                  boxSizing: 'border-box', resize: 'none', outline: 'none',
-                }}
-              />
+              <div className="section-body">
+                <div className="scan-area">
+                  <div className="scan-btns">
+                    <label className="scan-btn">
+                      <span className="scan-btn-icon">📷</span>
+                      <span>Camera</span>
+                      <input
+                        ref={cameraRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        style={{ display: 'none' }}
+                        onChange={e => onPhoto(e.target.files[0])}
+                      />
+                    </label>
+                    <label className="scan-btn">
+                      <span className="scan-btn-icon">🖼</span>
+                      <span>Upload</span>
+                      <input
+                        ref={uploadRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={e => onPhoto(e.target.files[0])}
+                      />
+                    </label>
+                  </div>
+                  {preview && (
+                    <img src={preview} alt="Card preview" className="scan-preview" />
+                  )}
+                  {scanStatus && (
+                    <div className="scan-status" style={statusColors[scanStatus.type]}>
+                      {scanStatus.text}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
 
-          {error && (
-            <div style={{
-              padding: '10px 12px', marginBottom: 12,
-              background: '#FEF2F2', color: '#DC2626',
-              borderRadius: 8, fontSize: 13,
-            }}>
-              {error}
+            {/* Contact details */}
+            <div className="section-card">
+              <div className="section-head">
+                <div className="section-title">Confirm Details</div>
+              </div>
+              <div className="section-body">
+                {fields.map(f => (
+                  <div key={f.key} className="field-row">
+                    <label className="field-label">{f.label}</label>
+                    <input
+                      className="field-input"
+                      type={f.type || 'text'}
+                      value={form[f.key]}
+                      onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                      placeholder={f.placeholder}
+                    />
+                  </div>
+                ))}
+                <div className="field-row">
+                  <label className="field-label">Notes</label>
+                  <textarea
+                    className="field-textarea"
+                    rows={2}
+                    value={form.notes}
+                    onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
+                    placeholder="Quick note about this lead…"
+                  />
+                </div>
+              </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={saving}
-            style={{
-              width: '100%', padding: '15px',
-              background: saving ? '#94A3B8' : '#0D1B3E',
-              color: '#fff', border: 'none', borderRadius: 12,
-              fontSize: 15, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {saving ? 'Scoring…' : 'Score & Save Lead →'}
-          </button>
-        </form>
+            {error && <div className="msg-err">{error}</div>}
+
+            <button type="submit" className="btn-save" disabled={saving}>
+              {saving ? <><span className="spinner" /> Scoring…</> : 'Save Walk-in Visitor →'}
+            </button>
+
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
