@@ -1,231 +1,259 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL
+const API = import.meta.env.VITE_API_URL || 'https://api.fingoh.ai'
+
+function compressImage(file, maxPx = 900, quality = 0.65) {
+  return new Promise(resolve => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/jpeg', quality))
+    }
+    img.src = url
+  })
+}
 
 export default function Scanner() {
   const navigate = useNavigate()
-  const videoRef = useRef(null)
-  const canvasRef = useRef(null)
-  const streamRef = useRef(null)
+  const cameraRef = useRef(null)
+  const uploadRef = useRef(null)
+  const [preview, setPreview] = useState(null)
+  const [status, setStatus] = useState(null)
+  const [form, setForm] = useState({
+    name: '', company: '', designation: '',
+    email: '', phone: '', city: '', country: '', notes: ''
+  })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
-  const [phase, setPhase] = useState('camera') // 'camera' | 'processing' | 'error'
-  const [processingStep, setProcessingStep] = useState('')
-  const [isOnline, setIsOnline] = useState(navigator.onLine)
-  const [flashActive, setFlashActive] = useState(false)
-  const [cameraError, setCameraError] = useState('')
+  const statusStyle = {
+    scanning: { background: '#EFF6FF', color: '#1E40AF' },
+    ok:       { background: '#F0FDF4', color: '#166534' },
+    warn:     { background: '#FFFBEB', color: '#92400E' },
+  }
 
-  useEffect(() => {
-    startCamera()
-    const onOnline = () => setIsOnline(true)
-    const onOffline = () => setIsOnline(false)
-    window.addEventListener('online', onOnline)
-    window.addEventListener('offline', onOffline)
-    return () => {
-      stopCamera()
-      window.removeEventListener('online', onOnline)
-      window.removeEventListener('offline', onOffline)
-    }
-  }, [])
-
-  const startCamera = async () => {
+  async function onPhoto(file) {
+    if (!file) return
+    setForm({ name: '', company: '', designation: '', email: '', phone: '', city: '', country: '', notes: '' })
+    setError('')
+    setPreview(URL.createObjectURL(file))
+    setStatus({ text: '🔍 Scanning card…', type: 'scanning' })
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: false
+      const b64 = await compressImage(file)
+      const res = await fetch(`${API}/mvp/extract-card`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64: b64 })
       })
-      streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
+      const data = await res.json()
+      if (res.ok && data.contact) {
+        const c = data.contact
+        setForm(f => ({
+          ...f,
+          name: c.name || '', company: c.company || '',
+          designation: c.designation || '', email: c.email || '',
+          phone: c.phone || '', city: c.city || '', country: c.country || '',
+        }))
+        setStatus({ text: '✓ Card scanned — review and save', type: 'ok' })
+      } else {
+        setStatus({ text: '⚠ Could not read card — fill manually', type: 'warn' })
       }
-    } catch (err) {
-      setCameraError('Camera access denied. Please allow camera permission and reload.')
+    } catch (e) {
+      setStatus({ text: '⚠ Scan failed — fill manually', type: 'warn' })
     }
   }
 
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop())
-    }
-  }
-
-  const captureAndProcess = async () => {
-    if (!videoRef.current || !canvasRef.current) return
-
-    // Flash effect
-    setFlashActive(true)
-    setTimeout(() => setFlashActive(false), 150)
-
-    // Capture frame
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    const ctx = canvas.getContext('2d')
-    ctx.drawImage(video, 0, 0)
-    const imageBase64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1]
-
-    stopCamera()
-    setPhase('processing')
-
+  async function handleSave(e) {
+    e.preventDefault()
+    if (!form.name.trim()) { setError('Name is required'); return }
+    setSaving(true); setError('')
     try {
       const { data: { user } } = await supabase.auth.getUser()
-
-      // Step 1: Extract card text
-      setProcessingStep('Reading business card...')
-      const extractRes = await fetch(`${API_BASE}/mvp/extract-card`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_base64: imageBase64 })
-      })
-      if (!extractRes.ok) throw new Error('Failed to extract card')
-      const { extracted_data, raw_text } = await extractRes.json()
-
-      // Step 2: Score with IEI
-      setProcessingStep('Calculating IEI score...')
       const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('icp_roles, icp_company_types, icp_intent')
-        .eq('id', user.id)
-        .single()
-
-      const scoreRes = await fetch(`${API_BASE}/mvp/score`, {
+        .from('user_profiles').select('icp_config').eq('user_id', user.id).single()
+      const res = await fetch(`${API}/mvp/score`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          extracted_data,
-          icp: profile || {}
-        })
+        body: JSON.stringify({ contact: form, icp: profile?.icp_config || {} })
       })
-      if (!scoreRes.ok) throw new Error('Failed to score')
-      const scoreData = await scoreRes.json()
-
-      // Step 3: Save to Supabase
-      setProcessingStep('Saving scan...')
-      const { data: scan, error: saveError } = await supabase
+      const scored = await res.json()
+      const { data: scan, error: dbErr } = await supabase
         .from('scans')
         .insert({
           user_id: user.id,
-          raw_card_text: raw_text,
-          extracted_data,
-          iei_score: scoreData.iei_score,
-          iei_tier: scoreData.iei_tier,
-          signals: scoreData.signals,
-          intelligence_layers: scoreData.intelligence_layers,
-          is_offline: false
+          contact_name: form.name, contact_company: form.company,
+          contact_title: form.designation, contact_email: form.email,
+          contact_phone: form.phone, iei_score: scored.iei_score,
+          tier: scored.tier, signals: scored.signals || [],
+          raw_contact: form,
         })
-        .select()
-        .single()
-
-      if (saveError) throw saveError
-
+        .select().single()
+      if (dbErr) throw dbErr
       navigate(`/result/${scan.id}`)
-
     } catch (err) {
-      console.error(err)
-      setPhase('error')
-      setProcessingStep(err.message || 'Something went wrong')
+      setError('Something went wrong. Please try again.')
+    } finally {
+      setSaving(false)
     }
   }
 
-  const retry = () => {
-    setPhase('camera')
-    setProcessingStep('')
-    setCameraError('')
-    startCamera()
-  }
-
   return (
-    <div className="min-h-screen bg-black flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <div style={{
+      minHeight: '100dvh', background: '#F8FAFC',
+      paddingTop: 'calc(env(safe-area-inset-top) + 56px)',
+      paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)',
+    }}>
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+        paddingTop: 'env(safe-area-inset-top)',
+        background: '#fff', borderBottom: '1px solid #E5E7EB',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 8, background: '#0D1B3E',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontWeight: 800, fontSize: 16,
+          }}>F</div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#0D1B3E' }}>Scan Business Card</div>
+            <div style={{ fontSize: 11, color: '#64748B' }}>Fingoh · Booth Intelligence</div>
+          </div>
+        </div>
+      </div>
 
-      {/* Flash overlay */}
-      {flashActive && <div className="fixed inset-0 bg-white z-50 pointer-events-none" />}
+      <div style={{ padding: '16px' }}>
+        <div style={{
+          background: '#fff', border: '1px solid #E5E7EB',
+          borderRadius: 16, padding: 16, marginBottom: 12,
+        }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#64748B', marginBottom: 12 }}>
+            CAPTURE BUSINESS CARD
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <label style={{
+              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: 6, padding: '14px 10px', background: '#0D1B3E', color: '#fff',
+              borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+            }}>
+              <span style={{ fontSize: 24 }}>📷</span>
+              <span>Camera</span>
+              <input ref={cameraRef} type="file" accept="image/*" capture="environment"
+                style={{ display: 'none' }} onChange={e => onPhoto(e.target.files[0])} />
+            </label>
+            <label style={{
+              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: 6, padding: '14px 10px', background: '#F1F5F9', color: '#0D1B3E',
+              border: '1px solid #E5E7EB', borderRadius: 12, cursor: 'pointer',
+              fontSize: 13, fontWeight: 600,
+            }}>
+              <span style={{ fontSize: 24 }}>🖼</span>
+              <span>Upload</span>
+              <input ref={uploadRef} type="file" accept="image/*"
+                style={{ display: 'none' }} onChange={e => onPhoto(e.target.files[0])} />
+            </label>
+          </div>
+          {preview && (
+            <img src={preview} alt="Card preview" style={{
+              width: '100%', marginTop: 12, borderRadius: 10,
+              border: '1px solid #E5E7EB', objectFit: 'contain', maxHeight: 180,
+            }} />
+          )}
+          {status && (
+            <div style={{
+              marginTop: 10, padding: '8px 12px', borderRadius: 8,
+              fontSize: 13, fontWeight: 500, ...statusStyle[status.type],
+            }}>
+              {status.text}
+            </div>
+          )}
+        </div>
 
-      {/* Hidden canvas for capture */}
-      <canvas ref={canvasRef} className="hidden" />
-
-      {phase === 'camera' && (
-        <>
-          {/* Camera feed */}
-          <div className="relative flex-1">
-            {cameraError ? (
-              <div className="flex-1 flex items-center justify-center p-6 text-center">
-                <div>
-                  <div className="text-4xl mb-4">📷</div>
-                  <p className="text-white text-sm">{cameraError}</p>
-                </div>
+        <form onSubmit={handleSave}>
+          <div style={{
+            background: '#fff', border: '1px solid #E5E7EB',
+            borderRadius: 16, padding: 16, marginBottom: 12,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#64748B', marginBottom: 12 }}>
+              CONTACT DETAILS
+            </div>
+            {[
+              { key: 'name',        label: 'Name *',    placeholder: 'Full name' },
+              { key: 'company',     label: 'Company',   placeholder: 'Company name' },
+              { key: 'designation', label: 'Job Title', placeholder: 'Director, Manager…' },
+              { key: 'email',       label: 'Email',     placeholder: 'email@company.com', type: 'email' },
+              { key: 'phone',       label: 'Phone',     placeholder: '+91 98765 43210',   type: 'tel' },
+              { key: 'city',        label: 'City',      placeholder: 'Mumbai, Milan…' },
+              { key: 'country',     label: 'Country',   placeholder: 'India, UK…' },
+            ].map(f => (
+              <div key={f.key} style={{ marginBottom: 12 }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 4 }}>
+                  {f.label}
+                </label>
+                <input
+                  type={f.type || 'text'}
+                  value={form[f.key]}
+                  onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                  placeholder={f.placeholder}
+                  style={{
+                    width: '100%', fontSize: 16, padding: '10px 12px',
+                    border: '1px solid #E5E7EB', borderRadius: 8,
+                    background: '#F8FAFC', color: '#0D1B3E',
+                    boxSizing: 'border-box', outline: 'none',
+                  }}
+                />
               </div>
-            ) : (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover"
-                style={{ minHeight: '60vh' }}
+            ))}
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 4 }}>
+                Notes
+              </label>
+              <textarea
+                value={form.notes}
+                onChange={e => setForm(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Quick note about this lead…"
+                rows={2}
+                style={{
+                  width: '100%', fontSize: 16, padding: '10px 12px',
+                  border: '1px solid #E5E7EB', borderRadius: 8,
+                  background: '#F8FAFC', color: '#0D1B3E',
+                  boxSizing: 'border-box', resize: 'none', outline: 'none',
+                }}
               />
-            )}
-
-            {/* Viewfinder overlay */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="relative w-72 h-44">
-                {/* Corner brackets */}
-                <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-white rounded-tl" />
-                <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-white rounded-tr" />
-                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-white rounded-bl" />
-                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-white rounded-br" />
-                {/* Scan line */}
-                <div className="absolute inset-x-0 top-1/2 h-px bg-[#3B82F6]/60" />
-              </div>
-            </div>
-
-            {/* Top bar */}
-            <div className="absolute top-4 left-0 right-0 flex items-center justify-between px-4">
-              <button onClick={() => navigate('/scans')} className="text-white bg-black/40 rounded-full px-3 py-1 text-sm">
-                ← My Scans
-              </button>
-              <span className={`text-xs px-2 py-1 rounded-full ${isOnline ? 'bg-green-500/80 text-white' : 'bg-yellow-500/80 text-black'}`}>
-                {isOnline ? '● Online' : '○ Offline'}
-              </span>
             </div>
           </div>
 
-          {/* Bottom panel */}
-          <div className="bg-[#0D1B3E] px-6 py-6 flex flex-col items-center gap-4">
-            <p className="text-[#94A3B8] text-sm text-center">
-              Point camera at a business card
-            </p>
-            <button
-              onClick={captureAndProcess}
-              disabled={!!cameraError}
-              className="w-20 h-20 rounded-full bg-white border-4 border-[#3B82F6] flex items-center justify-center active:scale-90 transition-transform disabled:opacity-40 shadow-lg"
-            >
-              <div className="w-14 h-14 rounded-full bg-[#1E40AF]" />
-            </button>
-            <p className="text-[#475569] text-xs">Tap to scan</p>
-          </div>
-        </>
-      )}
+          {error && (
+            <div style={{
+              padding: '10px 12px', marginBottom: 12,
+              background: '#FEF2F2', color: '#DC2626',
+              borderRadius: 8, fontSize: 13,
+            }}>
+              {error}
+            </div>
+          )}
 
-      {phase === 'processing' && (
-        <div className="flex-1 flex flex-col items-center justify-center px-6 bg-[#0D1B3E]">
-          <div className="w-16 h-16 rounded-full border-4 border-[#1E40AF] border-t-[#3B82F6] animate-spin mb-6" />
-          <p className="text-white font-semibold text-lg mb-2">Analysing...</p>
-          <p className="text-[#94A3B8] text-sm text-center">{processingStep}</p>
-        </div>
-      )}
-
-      {phase === 'error' && (
-        <div className="flex-1 flex flex-col items-center justify-center px-6 bg-[#0D1B3E]">
-          <div className="text-4xl mb-4">⚠️</div>
-          <p className="text-white font-semibold mb-2">Something went wrong</p>
-          <p className="text-[#94A3B8] text-sm text-center mb-6">{processingStep}</p>
-          <button onClick={retry} className="bg-[#1E40AF] text-white px-6 py-3 rounded-xl font-semibold">
-            Try Again
+          <button
+            type="submit"
+            disabled={saving}
+            style={{
+              width: '100%', padding: '15px',
+              background: saving ? '#94A3B8' : '#0D1B3E',
+              color: '#fff', border: 'none', borderRadius: 12,
+              fontSize: 15, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {saving ? 'Scoring…' : 'Score & Save Lead →'}
           </button>
-        </div>
-      )}
+        </form>
+      </div>
     </div>
   )
 }
