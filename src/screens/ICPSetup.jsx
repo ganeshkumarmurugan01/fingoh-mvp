@@ -29,7 +29,7 @@ export default function ICPSetup() {
       updated_at: new Date().toISOString()
     })
     setSaving(false)
-    navigate('/scan')
+    navigate('/home')
   }
 
   return (
