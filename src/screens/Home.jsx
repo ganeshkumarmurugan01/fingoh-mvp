@@ -6,7 +6,7 @@ import fingohLogo from '../assets/fingoh-logo.png'
 export default function Home() {
   const navigate = useNavigate()
   const [userName, setUserName] = useState('')
-  const [eventName, setEventName] = useState('CPhI Milan 2024')
+  const [eventName, setEventName] = useState('')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -15,8 +15,8 @@ export default function Home() {
         setUserName(name.charAt(0).toUpperCase() + name.slice(1))
       }
     })
-    supabase.from('user_profiles').select('event_name').single().then(({ data }) => {
-      if (data?.event_name) setEventName(data.event_name)
+    supabase.auth.getUser().then(({ data: { user } }) => { supabase.from('user_profiles').select('event_name').eq('id', user.id).single().then(({ data }) => {
+      if (data?.event_name) setEventName(data.event_name)}) }
     })
   }, [])
 
@@ -67,9 +67,9 @@ export default function Home() {
           </div>
           <div className="home-greeting">Welcome back, {userName}</div>
           <div className="home-title">Intent Intelligence</div>
-          <div className="event-badge">
+          {eventName && <div className="event-badge">
             <div className="event-dot" />
-            <div className="event-name">{eventName}</div>
+            <div className="event-name">{eventName}</div></div>}
           </div>
         </div>
 
