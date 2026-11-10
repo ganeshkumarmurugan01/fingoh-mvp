@@ -245,7 +245,7 @@ export default function Scanner() {
     setScanStatus({ text: '🔍 Scanning card…', type: 'scanning' })
     try {
       const b64 = await compressImage(file)
-      const res = await fetch(`${API}/mvp/extract-card`, {
+      const res = await fetch(`${API}/api/v1/audience/scan-card`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_base64: b64 })
@@ -268,20 +268,12 @@ export default function Scanner() {
     }
   }
 
-  async function handleSave(e) {
+async function handleSave(e) {
     e.preventDefault()
     if (!form.name.trim()) { setError('Name is required'); return }
     setSaving(true); setError('')
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      const { data: profile } = await supabase
-        .from('user_profiles').select('icp_config').eq('user_id', user.id).single()
-      const res = await fetch(`${API}/mvp/score`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contact: form, icp: profile?.icp_config || {} })
-      })
-      const scored = await res.json()
       const { data: scan, error: dbErr } = await supabase
         .from('scans')
         .insert({
@@ -291,15 +283,16 @@ export default function Scanner() {
           contact_title: form.designation,
           contact_email: form.email,
           contact_phone: form.phone,
-          iei_score: scored.iei_score,
-          tier: scored.tier,
-          signals: scored.signals || [],
+          iei_score: 3,
+          tier: 'warm',
+          signals: [],
           raw_contact: form,
+          notes: form.notes,
         })
         .select().single()
       if (dbErr) throw dbErr
       navigate(`/result/${scan.id}`)
-    } catch {
+    } catch (err) {
       setError('Something went wrong. Please try again.')
     } finally {
       setSaving(false)
