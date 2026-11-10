@@ -107,11 +107,11 @@ export default function Login() {
                 6-Digit Code
               </label>
               <input
-                type="number"
+                type="text"
                 inputMode="numeric"
-                placeholder="000000"
+                placeholder="00000000"
                 value={otp}
-                onChange={e => setOtp(e.target.value.slice(0, 6))}
+                onChange={e => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))}
                 required
                 autoFocus
                 style={{ fontSize: '24px', letterSpacing: '0.3em', textAlign: 'center' }}
