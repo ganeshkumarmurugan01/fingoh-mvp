@@ -2,10 +2,24 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
+function FingohLogo({ size = 48 }) {
+  return (
+    <svg width={size * 2.8} height={size} viewBox="0 0 196 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Stacked bars icon */}
+      <rect x="0" y="4" width="38" height="10" rx="2" fill="#29ABE2"/>
+      <rect x="0" y="20" width="38" height="10" rx="2" fill="#39B54A"/>
+      <rect x="0" y="36" width="38" height="10" rx="2" fill="#F7B731"/>
+      <rect x="0" y="52" width="38" height="10" rx="2" fill="#E84242"/>
+      {/* Fingoh.ai wordmark */}
+      <text x="48" y="56" fontFamily="-apple-system, 'Helvetica Neue', Arial, sans-serif" fontSize="48" fontWeight="900" fill="#0D1B3E" letterSpacing="-1">Fingoh.ai</text>
+    </svg>
+  )
+}
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
-  const [step, setStep] = useState('email') // 'email' | 'otp'
+  const [step, setStep] = useState('email')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
@@ -44,69 +58,90 @@ export default function Login() {
   }
 
   return (
-    <div
-      className="min-h-screen bg-[#0D1B3E] flex flex-col items-center justify-center px-6"
-      style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
-    >
-      {/* Logo */}
-      <div className="mb-12 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-[#1E40AF] flex items-center justify-center mx-auto mb-4">
-          <span className="text-white text-2xl font-bold">F</span>
-        </div>
-        <h1 className="text-3xl font-bold text-white tracking-tight">Fingoh</h1>
-        <p className="text-[#94A3B8] text-sm mt-1">Booth Intelligence · Pharma Edition</p>
-      </div>
+    <>
+      <style>{`
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #F8FAFC; }
+        #login-shell {
+          max-width: 480px; margin: 0 auto; min-height: 100dvh;
+          background: #F8FAFC; display: flex; flex-direction: column;
+          align-items: center; justify-content: center; padding: 32px 24px;
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+        .login-card {
+          width: 100%; background: white; border-radius: 20px;
+          border: 1.5px solid #E5E7EB; padding: 36px 24px;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        }
+        .logo-block { text-align: center; margin-bottom: 28px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .logo-sub { color: #9CA3AF; font-size: 13px; }
+        .field-label { display: block; font-size: 11px; font-weight: 700; color: #9CA3AF; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+        .field-input {
+          width: 100%; border: 1.5px solid #E5E7EB; border-radius: 12px;
+          padding: 14px 16px; font-size: 16px; color: #111827; background: #F9FAFB;
+          outline: none; transition: all 0.15s; font-family: inherit;
+        }
+        .field-input:focus { border-color: #2563EB; background: white; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+        .field-input-otp {
+          width: 100%; border: 1.5px solid #E5E7EB; border-radius: 12px;
+          padding: 16px; font-size: 28px; color: #0D1B3E; background: #F9FAFB;
+          outline: none; transition: all 0.15s; font-family: 'SF Mono', monospace;
+          letter-spacing: 0.25em; text-align: center;
+        }
+        .field-input-otp:focus { border-color: #2563EB; background: white; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+        .btn-primary {
+          width: 100%; background: #1E40AF; color: white; border: none;
+          padding: 15px; border-radius: 12px; font-size: 15px; font-weight: 700;
+          cursor: pointer; transition: all 0.15s; margin-top: 16px; font-family: inherit;
+        }
+        .btn-primary:active { transform: scale(0.98); background: #1D4ED8; }
+        .btn-primary:disabled { opacity: 0.4; }
+        .btn-ghost { width: 100%; background: none; border: none; color: #9CA3AF; font-size: 14px; padding: 12px; cursor: pointer; margin-top: 4px; font-family: inherit; }
+        .hint-text { color: #9CA3AF; font-size: 12px; text-align: center; margin-top: 12px; }
+        .error-text { color: #DC2626; font-size: 13px; text-align: center; margin-top: 8px; }
+        .otp-header { text-align: center; margin-bottom: 20px; }
+        .otp-emoji { font-size: 36px; margin-bottom: 8px; }
+        .otp-title { color: #111827; font-size: 17px; font-weight: 700; }
+        .otp-sub { color: #6B7280; font-size: 13px; margin-top: 4px; }
+        .otp-email { color: #2563EB; font-weight: 600; }
+        .footer-text { color: #D1D5DB; font-size: 11px; margin-top: 24px; text-align: center; }
+      `}</style>
+      <div id="login-shell">
+        <div className="login-card">
+          <div className="logo-block">
+            <FingohLogo size={48} />
+            <div className="logo-sub">Booth Intelligence · Pharma Edition</div>
+          </div>
 
-      <div className="w-full max-w-sm">
-        {step === 'email' ? (
-          <form onSubmit={handleSendOtp} className="space-y-4">
-            <div>
-              <label className="text-[#94A3B8] text-xs font-medium uppercase tracking-wider mb-2 block">
-                Work Email
-              </label>
+          {step === 'email' ? (
+            <form onSubmit={handleSendOtp}>
+              <label className="field-label">Work Email</label>
               <input
+                className="field-input"
                 type="email"
                 placeholder="you@company.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                style={{ fontSize: '16px' }}
-                className="w-full bg-white/10 border border-white/20 text-white placeholder-white/30 rounded-2xl px-4 py-4 focus:outline-none focus:border-[#3B82F6] focus:bg-white/15 transition-all"
               />
-            </div>
-
-            {error && (
-              <p className="text-red-400 text-sm text-center">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || !email}
-              className="w-full bg-[#1E40AF] hover:bg-[#1D4ED8] text-white font-semibold py-4 rounded-2xl text-base active:scale-95 transition-all disabled:opacity-40 mt-2"
-            >
-              {loading ? 'Sending code...' : 'Get Login Code'}
-            </button>
-
-            <p className="text-[#64748B] text-xs text-center pt-2">
-              We'll send a 6-digit code to your email
-            </p>
-          </form>
-        ) : (
-          <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <div className="text-center mb-6">
-              <div className="text-3xl mb-2">📬</div>
-              <p className="text-white font-semibold">Check your email</p>
-              <p className="text-[#94A3B8] text-sm mt-1">
-                Code sent to <span className="text-[#3B82F6]">{email}</span>
-              </p>
-            </div>
-
-            <div>
-              <label className="text-[#94A3B8] text-xs font-medium uppercase tracking-wider mb-2 block">
-                6-Digit Code
-              </label>
+              {error && <p className="error-text">{error}</p>}
+              <button className="btn-primary" type="submit" disabled={loading || !email}>
+                {loading ? 'Sending code...' : 'Get Login Code'}
+              </button>
+              <p className="hint-text">We'll send an 8-digit code to your email</p>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyOtp}>
+              <div className="otp-header">
+                <div className="otp-emoji">📬</div>
+                <div className="otp-title">Check your email</div>
+                <div className="otp-sub">Code sent to <span className="otp-email">{email}</span></div>
+              </div>
+              <label className="field-label">8-Digit Code</label>
               <input
+                className="field-input-otp"
                 type="text"
                 inputMode="numeric"
                 placeholder="00000000"
@@ -114,37 +149,19 @@ export default function Login() {
                 onChange={e => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))}
                 required
                 autoFocus
-                style={{ fontSize: '24px', letterSpacing: '0.3em', textAlign: 'center' }}
-                className="w-full bg-white/10 border border-white/20 text-white placeholder-white/20 rounded-2xl px-4 py-4 focus:outline-none focus:border-[#3B82F6] focus:bg-white/15 transition-all"
               />
-            </div>
-
-            {error && (
-              <p className="text-red-400 text-sm text-center">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || otp.length < 8}
-              className="w-full bg-[#1E40AF] hover:bg-[#1D4ED8] text-white font-semibold py-4 rounded-2xl text-base active:scale-95 transition-all disabled:opacity-40"
-            >
-              {loading ? 'Verifying...' : 'Verify & Sign In'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { setStep('email'); setOtp(''); setError('') }}
-              className="w-full text-[#64748B] text-sm py-2 active:text-white transition-colors"
-            >
-              ← Use different email
-            </button>
-          </form>
-        )}
+              {error && <p className="error-text">{error}</p>}
+              <button className="btn-primary" type="submit" disabled={loading || otp.length < 8}>
+                {loading ? 'Verifying...' : 'Verify & Sign In'}
+              </button>
+              <button className="btn-ghost" type="button" onClick={() => { setStep('email'); setOtp(''); setError('') }}>
+                ← Use different email
+              </button>
+            </form>
+          )}
+        </div>
+        <p className="footer-text">Powered by Fingoh · Akiraas Pte. Ltd.</p>
       </div>
-
-      <p className="text-[#1E3A5F] text-xs mt-12">
-        Powered by Fingoh · Akiraas Pte. Ltd.
-      </p>
-    </div>
+    </>
   )
 }
