@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase } from "../lib/supabase"
+import fingohLogo from "../assets/fingoh-logo.png"
 
 const TABS = [
   { id: 'event', label: '📅 Event', title: 'Event Details' },
@@ -90,7 +91,7 @@ export default function ICPSetup() {
     const { data: { user } } = await supabase.auth.getUser()
     const path = `${user.id}/${Date.now()}_${file.name}`
     const { error } = await supabase.storage.from('brochures').upload(path, file)
-    if (!error) {
+    if (error) { console.error("Upload error:", error); alert("Upload failed: " + error.message); } else {
       const { data: { publicUrl } } = supabase.storage.from('brochures').getPublicUrl(path)
       const updated = [...brochures, { name: file.name, url: publicUrl, path }]
       setBrochures(updated)
@@ -155,6 +156,7 @@ export default function ICPSetup() {
       `}</style>
       <div id="setup-shell">
         <div className="setup-header">
+          <div style={{padding:"12px 0 8px"}}><img src={fingohLogo} alt="Fingoh" style={{height:"24px",width:"auto",filter:"brightness(0) invert(1)"}} /></div>
           <div className="setup-header-top">
             <button className="back-btn" onClick={() => navigate('/home')}>‹</button>
             <div>
