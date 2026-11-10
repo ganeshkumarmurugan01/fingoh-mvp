@@ -1,20 +1,7 @@
 import { useState } from 'react'
+import fingohLogo from '../assets/fingoh-logo.png'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-
-function FingohLogo({ size = 48 }) {
-  return (
-    <svg width={size * 2.8} height={size} viewBox="0 0 196 70" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Stacked bars icon */}
-      <rect x="0" y="4" width="38" height="10" rx="2" fill="#29ABE2"/>
-      <rect x="0" y="20" width="38" height="10" rx="2" fill="#39B54A"/>
-      <rect x="0" y="36" width="38" height="10" rx="2" fill="#F7B731"/>
-      <rect x="0" y="52" width="38" height="10" rx="2" fill="#E84242"/>
-      {/* Fingoh.ai wordmark */}
-      <text x="48" y="56" fontFamily="-apple-system, 'Helvetica Neue', Arial, sans-serif" fontSize="48" fontWeight="900" fill="#0D1B3E" letterSpacing="-1">Fingoh.ai</text>
-    </svg>
-  )
-}
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -110,8 +97,8 @@ export default function Login() {
       <div id="login-shell">
         <div className="login-card">
           <div className="logo-block">
-            <FingohLogo size={48} />
-            <div className="logo-sub">Booth Intelligence · Pharma Edition</div>
+            <img src={fingohLogo} alt="Fingoh" style={{ height: '48px', width: 'auto' }} />
+            <div className="logo-sub">Intent Intelligence · Pharma Edition</div>
           </div>
 
           {step === 'email' ? (
