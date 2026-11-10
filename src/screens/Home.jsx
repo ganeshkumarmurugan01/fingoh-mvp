@@ -73,8 +73,6 @@ export default function Home() {
             <div className="event-dot" />
             <div className="event-name">{eventName}</div></div>}
           </div>
-        </div>
-
         <div className="home-body">
           <div className="section-label">Capture</div>
 
