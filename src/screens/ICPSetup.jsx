@@ -80,7 +80,7 @@ export default function ICPSetup() {
     })
     setSaving(false)
     setSaved(true)
-    setTimeout(() => { setSaved(false); navigate('/home') }, 1200)
+    setTimeout(() => setSaved(false), 2000)
   }
 
   const handleBrochureUpload = async (e) => {
