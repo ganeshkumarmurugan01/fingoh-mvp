@@ -95,6 +95,7 @@ export default function ICPSetup() {
       const { data: { publicUrl } } = supabase.storage.from('brochures').getPublicUrl(path)
       const updated = [...brochures, { name: file.name, url: publicUrl, path }]
       setBrochures(updated)
+      await supabase.from("user_profiles").upsert({ id: user.id, brochures: updated, updated_at: new Date().toISOString() })
     }
     setUploading(false)
   }
