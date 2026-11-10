@@ -103,7 +103,10 @@ export default function ICPSetup() {
   const removeBrochure = async (idx) => {
     const b = brochures[idx]
     await supabase.storage.from('brochures').remove([b.path])
-    setBrochures(prev => prev.filter((_, i) => i !== idx))
+    const updated = brochures.filter((_, i) => i !== idx)
+    setBrochures(updated)
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from("user_profiles").upsert({ id: user.id, brochures: updated, updated_at: new Date().toISOString() })
   }
 
   return (

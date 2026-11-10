@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import fingohLogo from '../assets/fingoh-logo.png'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.fingoh.ai'
 
@@ -321,10 +322,10 @@ export default function Scanner() {
       <div id="scanner-shell">
 
         {/* Sticky header */}
-        <div className="walkin-header">
-          <button className="back-btn" onClick={() => navigate('/scan')}>←</button>
+        <div className="walkin-header" style={{background:"#0D1B3E",borderBottom:"none",paddingBottom:"10px"}}>
+          <button className="back-btn" style={{background:"rgba(255,255,255,0.1)",border:"none",color:"white"}} onClick={() => navigate("/home")}>←</button>
           <div>
-            <div className="walkin-title">Walk-in Visitor</div>
+            <img src={fingohLogo} alt="Fingoh" style={{height:"22px",filter:"brightness(0) invert(1)",marginBottom:"4px"}} /><div className="walkin-title" style={{color:"white"}}>Walk-in Visitor</div>
             <div className="walkin-sub">Scan card or enter details</div>
           </div>
         </div>
