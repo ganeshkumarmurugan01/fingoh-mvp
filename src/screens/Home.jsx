@@ -15,8 +15,10 @@ export default function Home() {
         setUserName(name.charAt(0).toUpperCase() + name.slice(1))
       }
     })
-    supabase.auth.getUser().then(({ data: { user } }) => { supabase.from('user_profiles').select('event_name').eq('id', user.id).single().then(({ data }) => {
-      if (data?.event_name) setEventName(data.event_name)}) }
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      supabase.from('user_profiles').select('event_name').eq('id', user.id).single().then(({ data }) => {
+        if (data?.event_name) setEventName(data.event_name)
+      })
     })
   }, [])
 
