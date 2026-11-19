@@ -147,10 +147,11 @@ export default function Result() {
       <div id="result-shell">
         <div className="result-header">
           <button className="back-btn" onClick={() => navigate('/scans')}>‹</button>
-          <div>
-            <div className="header-name">{scan.contact_name || scan.name || 'Unknown Contact'}</div>
-            <div className="header-company">{[scan.designation, scan.company].filter(Boolean).join(' · ')}</div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div className="header-name">{scan.contact_name || 'Unknown Contact'}</div>
+            <div className="header-company">{[scan.contact_title, scan.contact_company].filter(Boolean).join(' · ')}</div>
           </div>
+          <img src="/fingoh-logo.png" alt="Fingoh" style={{ height:'28px', objectFit:'contain', flexShrink:0 }} />
         </div>
 
         <div className="result-body">
