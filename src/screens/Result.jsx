@@ -149,7 +149,7 @@ export default function Result() {
         <div className="result-header">
           <button className="back-btn" onClick={() => navigate('/scans')}>‹</button>
           <div style={{ flex:1, display:'flex', justifyContent:'center' }}>
-            <img src={fingohLogo} alt="Fingoh" style={{ height:'26px', objectFit:'contain' }} />
+            <img src={fingohLogo} alt="Fingoh" style={{ height:'26px', objectFit:'contain', filter:'brightness(0) invert(1)' }} />
           </div>
           <div style={{ width:36 }} />
         </div>
