@@ -93,11 +93,11 @@ export default function MyScans() {
       <div id="scans-shell">
         <div className="scans-header">
           <button className="back-btn" onClick={() => navigate('/home')}>‹</button>
+          <img src={fingohLogo} alt="Fingoh" style={{ height:'26px', objectFit:'contain', filter:'brightness(0) invert(1)' }} />
           <div className="header-info">
             <div className="header-title">My Leads</div>
             <div className="header-sub">{scans.length} contact{scans.length !== 1 ? 's' : ''} scanned</div>
           </div>
-          <img src={fingohLogo} alt="Fingoh" style={{ height:'26px', objectFit:'contain', filter:'brightness(0) invert(1)' }} />
         </div>
 
         <div className="filter-row">
