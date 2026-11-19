@@ -27,6 +27,13 @@ export default function MyScans() {
     setLoading(false)
   }
 
+  const handleDelete = async (e, scanId) => {
+    e.stopPropagation()
+    if (!window.confirm('Delete this lead? This cannot be undone.')) return
+    await supabase.from('scans').delete().eq('id', scanId)
+    setScans(prev => prev.filter(s => s.id !== scanId))
+  }
+
   const filtered = filter === 'all' ? scans : scans.filter(s => s.iei_score >= parseInt(filter))
   const sorted = [...filtered].sort((a, b) => (b.iei_score || 0) - (a.iei_score || 0))
 
@@ -146,7 +153,14 @@ export default function MyScans() {
                         <span className="lead-time">{timeAgo(scan.created_at)}</span>
                       </div>
                     </div>
-                    <div className="lead-arrow">›</div>
+                    <div style={{ display:'flex', alignItems:'center', gap:'4px' }}>
+                      <button
+                        onClick={e => handleDelete(e, scan.id)}
+                        style={{ background:'none', border:'none', cursor:'pointer', padding:'6px', color:'#EF4444', fontSize:'16px', lineHeight:1 }}
+                        title="Delete lead"
+                      >🗑</button>
+                      <div className="lead-arrow">›</div>
+                    </div>
                   </div>
                 )
               })}
