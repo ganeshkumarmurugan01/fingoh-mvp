@@ -274,39 +274,26 @@ async function handleSave(e) {
     setSaving(true); setError('')
     try {
       const { data: { user } } = await supabase.auth.getUser()
+      const userId = user?.id || null
 
-      // Duplicate check: same email OR same name+company for this user
       if (form.email && form.email.trim()) {
         const { data: existing } = await supabase
-          .from('scans')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('contact_email', form.email.trim())
+          .from('scans').select('id')
+          .eq('user_id', userId).eq('contact_email', form.email.trim())
           .maybeSingle()
-        if (existing) {
-          setError('A lead with this email already exists.')
-          setSaving(false)
-          return
-        }
+        if (existing) { setError('A lead with this email already exists.'); setSaving(false); return }
       } else if (form.name.trim() && form.company.trim()) {
         const { data: existing } = await supabase
-          .from('scans')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('contact_name', form.name.trim())
-          .eq('contact_company', form.company.trim())
+          .from('scans').select('id')
+          .eq('user_id', userId).eq('contact_name', form.name.trim()).eq('contact_company', form.company.trim())
           .maybeSingle()
-        if (existing) {
-          setError('A lead with this name and company already exists.')
-          setSaving(false)
-          return
-        }
+        if (existing) { setError('A lead with this name and company already exists.'); setSaving(false); return }
       }
 
-      const { error: dbErr } = await supabase
+      const { data: newScan, error: dbErr } = await supabase
         .from('scans')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           contact_name: form.name,
           contact_company: form.company,
           contact_title: form.designation,
@@ -318,15 +305,16 @@ async function handleSave(e) {
           raw_contact: form,
           notes: form.notes,
         })
+        .select('id')
+        .single()
       if (dbErr) throw dbErr
-      navigate('/scans')
+      navigate(`/result/${newScan.id}`)
     } catch (err) {
-      setError('Something went wrong. Please try again.')
+      setError('Save failed: ' + err.message)
     } finally {
       setSaving(false)
     }
   }
-
   const fields = [
     { key: 'name',        label: 'Name *',    placeholder: 'Full name' },
     { key: 'company',     label: 'Company',   placeholder: 'Company name' },
