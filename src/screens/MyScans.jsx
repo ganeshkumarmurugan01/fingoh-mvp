@@ -92,8 +92,8 @@ export default function MyScans() {
       `}</style>
       <div id="scans-shell">
         <div className="scans-header" style={{ flexDirection:'column', alignItems:'flex-start', gap:'8px' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:'12px', width:'100%' }}>
-            <button className="back-btn" onClick={() => navigate('/home')}>‹</button>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'100%', position:'relative' }}>
+            <button className="back-btn" onClick={() => navigate('/home')} style={{ position:'absolute', left:0 }}>‹</button>
             <img src={fingohLogo} alt="Fingoh" style={{ height:'26px', objectFit:'contain', filter:'brightness(0) invert(1)' }} />
           </div>
           <div className="header-info">

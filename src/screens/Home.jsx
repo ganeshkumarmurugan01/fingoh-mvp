@@ -40,7 +40,7 @@ export default function Home() {
         body { background:var(--bg); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
         #home-shell { max-width:480px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column; background:var(--bg); }
         .home-header { background:var(--navy); padding:20px 20px 28px; }
-        .home-logo { margin-bottom:16px; }
+        .home-logo { margin-bottom:16px; display:flex; justify-content:center; }
         .home-logo img { height:28px; width:auto; filter:brightness(0) invert(1); }
         .home-greeting { color:rgba(255,255,255,0.6); font-size:13px; margin-bottom:2px; }
         .home-title { color:white; font-size:22px; font-weight:700; }

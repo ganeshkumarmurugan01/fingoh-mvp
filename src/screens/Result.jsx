@@ -98,7 +98,7 @@ export default function Result() {
         * { box-sizing:border-box; margin:0; padding:0; }
         body { background:var(--bg); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
         #result-shell { max-width:480px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column; background:var(--bg); }
-        .result-header { background:var(--navy); padding:16px 20px; display:flex; align-items:center; gap:12px; }
+        .result-header { background:var(--navy); padding:16px 20px; display:flex; align-items:center; gap:12px; position:relative; }
         .back-btn { background:rgba(255,255,255,0.1); border:none; color:white; width:36px; height:36px; border-radius:10px; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
         .header-name { color:white; font-size:16px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .header-company { color:rgba(255,255,255,0.5); font-size:12px; margin-top:2px; }
@@ -148,7 +148,7 @@ export default function Result() {
       <div id="result-shell">
         <div className="result-header">
           <button className="back-btn" onClick={() => navigate('/scans')}>‹</button>
-          <div style={{ flex:1, display:'flex', justifyContent:'center' }}>
+          <div style={{ position:'absolute', left:'50%', transform:'translateX(-50%)' }}>
             <img src={fingohLogo} alt="Fingoh" style={{ height:'26px', objectFit:'contain', filter:'brightness(0) invert(1)' }} />
           </div>
           <div style={{ width:36 }} />
