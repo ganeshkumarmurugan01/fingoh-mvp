@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { supabase } from '../supabaseClient'
+import { supabase } from '../lib/supabase'
 import fingohLogo from '../assets/fingoh-logo.png'
 
 const PHARMA_SCORER_URL =
