@@ -36,7 +36,7 @@ export default function App() {
       <Route path="/setup" element={session ? <ICPSetup /> : <Navigate to="/login" />} />
       <Route path="/home" element={session ? <Home /> : <Navigate to="/login" />} />
       <Route path="/scan" element={session ? <Scanner /> : <Navigate to="/login" />} />
-      <Route path="/result/:scanId" element={session ? <Result /> : <Navigate to="/login" />} />
+      <Route path="/result/:id" element={<Result />} />
       <Route path="/scans" element={session ? <MyScans /> : <Navigate to="/login" />} />
       <Route path="*" element={<Navigate to={session ? "/home" : "/login"} />} />
     </Routes>
