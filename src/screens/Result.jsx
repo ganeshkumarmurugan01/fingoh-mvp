@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import fingohLogo from '../assets/fingoh-logo.png'
 
 const API = 'https://api.fingoh.ai'
 
@@ -148,7 +149,7 @@ export default function Result() {
         <div className="result-header">
           <button className="back-btn" onClick={() => navigate('/scans')}>‹</button>
           <div style={{ flex:1, display:'flex', justifyContent:'center' }}>
-            <img src="/fingoh-logo.png" alt="Fingoh" style={{ height:'26px', objectFit:'contain' }} />
+            <img src={fingohLogo} alt="Fingoh" style={{ height:'26px', objectFit:'contain' }} />
           </div>
           <div style={{ width:36 }} />
         </div>
