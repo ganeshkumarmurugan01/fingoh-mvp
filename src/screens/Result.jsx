@@ -70,7 +70,7 @@ export default function Result() {
       urgency,
     }).eq('id', id)
     setSaving(false); setSaveOk(true)
-    setTimeout(() => setSaveOk(false), 2000)
+    setTimeout(() => navigate('/scans'), 800)
   }
 
   const runAnalysis = async () => {
@@ -288,7 +288,7 @@ export default function Result() {
         )}
 
         {/* Intelligence Brief button */}
-        {analysis && !briefing?.synthesised_intent && (
+        {!briefing?.synthesised_intent && (
           <button onClick={runBriefing} disabled={briefing2} style={{width:'100%',padding:'15px',background:briefing2?'#8899AA':'#1A3A6B',color:'white',border:'none',borderRadius:14,fontSize:15,fontWeight:700,cursor:briefing2?'default':'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
             {briefing2?<><span style={{display:'inline-block',animation:'spin 1s linear infinite'}}>⏳</span> Generating Intelligence Brief…</>:<>🔍 Intelligence Brief</>}
           </button>
