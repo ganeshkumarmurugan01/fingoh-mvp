@@ -91,9 +91,11 @@ export default function MyScans() {
         .stat-lbl { font-size:11px; color:#9CA3AF; margin-top:2px; }
       `}</style>
       <div id="scans-shell">
-        <div className="scans-header">
-          <button className="back-btn" onClick={() => navigate('/home')}>‹</button>
-          <img src={fingohLogo} alt="Fingoh" style={{ height:'26px', objectFit:'contain', filter:'brightness(0) invert(1)' }} />
+        <div className="scans-header" style={{ flexDirection:'column', alignItems:'flex-start', gap:'8px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'12px', width:'100%' }}>
+            <button className="back-btn" onClick={() => navigate('/home')}>‹</button>
+            <img src={fingohLogo} alt="Fingoh" style={{ height:'26px', objectFit:'contain', filter:'brightness(0) invert(1)' }} />
+          </div>
           <div className="header-info">
             <div className="header-title">My Leads</div>
             <div className="header-sub">{scans.length} contact{scans.length !== 1 ? 's' : ''} scanned</div>
