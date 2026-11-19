@@ -293,7 +293,7 @@ Use web search to briefly research this person and their company. Then respond O
         {scan.raw_contact && (
           <div style={{background:'white',borderRadius:14,padding:'14px 16px',marginBottom:12,boxShadow:'0 1px 4px rgba(0,0,0,0.07)'}}>
             <div style={{fontSize:11,color:'#888',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>Scanned Text</div>
-            <div style={{fontSize:12,color:'#666',lineHeight:1.6,fontFamily:'monospace',whiteSpace:'pre-wrap'}}>{scan.raw_contact}</div>
+            <div style={{fontSize:12,color:'#666',lineHeight:1.6,fontFamily:'monospace',whiteSpace:'pre-wrap'}}>{typeof scan.raw_contact === "string" ? scan.raw_contact : JSON.stringify(scan.raw_contact, null, 2)}</div>
           </div>
         )}
 
