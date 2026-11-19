@@ -104,7 +104,7 @@ export default function Result() {
   const runBriefing = async () => {
     setBriefing2(true); setBriefError(null)
     try {
-      const res = await fetch('https://demo-api.fingoh.ai/api/v1/mvp/intelligence-brief', {
+      const res = await fetch('https://api-dev.fingoh.ai/api/v1/mvp/intelligence-brief', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
