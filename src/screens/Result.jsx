@@ -150,7 +150,8 @@ Use web search to briefly research this person and their company. Respond ONLY w
   const pt   = analysis ? (PHARMA_TIER[analysis.ieiTier]||PHARMA_TIER.T4) : null
 
   return (
-    <div style={{background:'#F4F5F7',minHeight:'100vh',fontFamily:'-apple-system,BlinkMacSystemFont,sans-serif',paddingBottom:40}}>
+    <div style={{background:'#E8EAF0',minHeight:'100vh',fontFamily:'-apple-system,BlinkMacSystemFont,sans-serif',display:'flex',flexDirection:'column',alignItems:'center'}}>
+      <div style={{width:'100%',maxWidth:430,background:'#F4F5F7',minHeight:'100vh',paddingBottom:40,position:'relative'}}>
 
       {/* Header */}
       <div style={{background:'#0D1B3E',padding:'14px 16px',display:'flex',alignItems:'center',gap:12}}>
@@ -348,6 +349,7 @@ Use web search to briefly research this person and their company. Respond ONLY w
 
       </div>
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+      </div>
     </div>
   )
 }
