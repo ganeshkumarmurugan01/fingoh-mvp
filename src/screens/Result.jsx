@@ -147,11 +147,30 @@ export default function Result() {
       <div id="result-shell">
         <div className="result-header">
           <button className="back-btn" onClick={() => navigate('/scans')}>‹</button>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div className="header-name">{scan.contact_name || 'Unknown Contact'}</div>
-            <div className="header-company">{[scan.contact_title, scan.contact_company].filter(Boolean).join(' · ')}</div>
+          <div style={{ flex:1, display:'flex', justifyContent:'center' }}>
+            <img src="/fingoh-logo.png" alt="Fingoh" style={{ height:'26px', objectFit:'contain' }} />
           </div>
-          <img src="/fingoh-logo.png" alt="Fingoh" style={{ height:'28px', objectFit:'contain', flexShrink:0 }} />
+          <div style={{ width:36 }} />
+        </div>
+
+        {/* Contact identity card */}
+        <div style={{ background:'#0D1B3E', padding:'0 20px 16px' }}>
+          <div style={{ background:'rgba(255,255,255,0.08)', borderRadius:'14px', padding:'14px 16px' }}>
+            <div style={{ color:'white', fontSize:'17px', fontWeight:800, marginBottom:'4px' }}>
+              {scan.contact_name || 'Unknown Contact'}
+            </div>
+            {(scan.contact_title || scan.contact_company) && (
+              <div style={{ color:'rgba(255,255,255,0.65)', fontSize:'13px', lineHeight:1.4 }}>
+                {[scan.contact_title, scan.contact_company].filter(Boolean).join(' · ')}
+              </div>
+            )}
+            {(scan.contact_email || scan.contact_phone) && (
+              <div style={{ marginTop:'8px', display:'flex', flexDirection:'column', gap:'3px' }}>
+                {scan.contact_email && <div style={{ color:'rgba(255,255,255,0.5)', fontSize:'12px' }}>✉ {scan.contact_email}</div>}
+                {scan.contact_phone && <div style={{ color:'rgba(255,255,255,0.5)', fontSize:'12px' }}>📞 {scan.contact_phone}</div>}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="result-body">
