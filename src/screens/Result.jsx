@@ -64,7 +64,7 @@ export default function Result() {
     }).eq('id', scanId)
     setSaving(false)
     setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    setTimeout(() => navigate('/scans'), 1200)
   }
 
   if (loading) return (
@@ -148,7 +148,7 @@ export default function Result() {
         <div className="result-header">
           <button className="back-btn" onClick={() => navigate('/scans')}>‹</button>
           <div>
-            <div className="header-name">{scan.name || 'Unknown Contact'}</div>
+            <div className="header-name">{scan.contact_name || scan.name || 'Unknown Contact'}</div>
             <div className="header-company">{[scan.designation, scan.company].filter(Boolean).join(' · ')}</div>
           </div>
         </div>
