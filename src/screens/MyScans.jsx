@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import fingohLogo from '../assets/fingoh-logo.png'
 
 const SCORE_COLOR = { 1:'#94A3B8', 2:'#64748B', 3:'#EAB308', 4:'#3B82F6', 5:'#16A34A' }
 const SCORE_LABEL = { 1:'Pass-through', 2:'Polite interest', 3:'Engaged', 4:'Strong evaluator', 5:'Active buyer' }
@@ -96,6 +97,7 @@ export default function MyScans() {
             <div className="header-title">My Leads</div>
             <div className="header-sub">{scans.length} contact{scans.length !== 1 ? 's' : ''} scanned</div>
           </div>
+          <img src={fingohLogo} alt="Fingoh" style={{ height:'26px', objectFit:'contain', filter:'brightness(0) invert(1)' }} />
         </div>
 
         <div className="filter-row">
