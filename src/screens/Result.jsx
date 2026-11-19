@@ -104,38 +104,22 @@ export default function Result() {
   const runBriefing = async () => {
     setBriefing2(true); setBriefError(null)
     try {
-      const prompt = `You are Fingoh.ai — a B2B pharma trade fair intelligence system.
-
-VISITOR:
-- Name: ${scan.contact_name||'Unknown'}
-- Title: ${scan.contact_title||''}
-- Company: ${scan.contact_company||''}
-- Country: ${scan.contact_country||''}
-- Visit reason: ${scan.notes||''}
-- Categories of interest: ${selTypes.join(', ')||''}
-- Conversation signals: ${Object.entries(sigs).filter(([,v])=>v).map(([k])=>k).join(', ')||'none'}
-
-Use web search to briefly research this person and their company. Respond ONLY with valid JSON (no markdown):
-{
-  "synthesised_intent": "2-3 sentences on what this person is likely attending for",
-  "professional_profile": ["signal 1","signal 2","signal 3","signal 4"],
-  "exhibitor_brief": {
-    "context": "1 sentence on company context",
-    "what_they_want": "1 sentence on their sourcing need",
-    "opening_line": "A strong opening line for your booth team"
-  }
-}`
-      const res = await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{'x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:prompt}]}),
+      const res = await fetch('https://demo-api.fingoh.ai/api/v1/mvp/intelligence-brief', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: scan.contact_name,
+          title: scan.contact_title,
+          company: scan.contact_company,
+          country: scan.contact_country,
+          notes: scan.notes,
+          sel_types: selTypes,
+          sigs,
+        }),
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = await res.json()
-      let text = ''
-      for (const block of data.content||[]) { if (block.type==='text'){text=block.text;break} }
-      text = text.trim().replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim()
-      const result = JSON.parse(text)
+      const result = await res.json()
+      if (result.error) throw new Error(result.error)
       setBriefing(result)
       const merged = {...(analysis||{}), ...result}
       await supabase.from('scans').update({ai_analysis:merged}).eq('id',id)
