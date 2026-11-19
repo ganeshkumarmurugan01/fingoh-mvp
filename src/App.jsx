@@ -10,25 +10,25 @@ import Result from './screens/Result'
 import MyScans from './screens/MyScans'
 
 export default function App() {
-  const [session, setSession] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [session, setSession] = useState(() => {
+    try {
+      const raw = localStorage.getItem('sb-eayujebzswmseppyzqnl-auth-token')
+      if (!raw) return null
+      const parsed = JSON.parse(raw)
+      if (parsed?.expires_at && parsed.expires_at * 1000 > Date.now()) return parsed
+    } catch {}
+    return null
+  })
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
-      setLoading(false)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
     return () => subscription.unsubscribe()
   }, [])
-
-  if (loading) return (
-    <div style={{ minHeight:'100dvh', background:'#0D1B3E', display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div style={{ color:'white', fontSize:'18px', fontWeight:700, letterSpacing:'0.05em' }}>Fingoh</div>
-    </div>
-  )
 
   return (
     <Routes>
