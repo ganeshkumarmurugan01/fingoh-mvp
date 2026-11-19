@@ -139,8 +139,8 @@ export default function MyScans() {
                       {score || '?'}
                     </div>
                     <div className="lead-info">
-                      <div className="lead-name">{scan.name || 'Unknown'}</div>
-                      <div className="lead-company">{[scan.designation, scan.company].filter(Boolean).join(' · ')}</div>
+                      <div className="lead-name">{scan.contact_name || 'Unknown'}</div>
+                      <div className="lead-company">{[scan.contact_title, scan.contact_company].filter(Boolean).join(' · ')}</div>
                       <div className="lead-meta">
                         <span className="tier-chip" style={{ background: bg, color }}>{label}</span>
                         <span className="lead-time">{timeAgo(scan.created_at)}</span>

@@ -274,7 +274,36 @@ async function handleSave(e) {
     setSaving(true); setError('')
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      const { data: scan, error: dbErr } = await supabase
+
+      // Duplicate check: same email OR same name+company for this user
+      if (form.email && form.email.trim()) {
+        const { data: existing } = await supabase
+          .from('scans')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('contact_email', form.email.trim())
+          .maybeSingle()
+        if (existing) {
+          setError('A lead with this email already exists.')
+          setSaving(false)
+          return
+        }
+      } else if (form.name.trim() && form.company.trim()) {
+        const { data: existing } = await supabase
+          .from('scans')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('contact_name', form.name.trim())
+          .eq('contact_company', form.company.trim())
+          .maybeSingle()
+        if (existing) {
+          setError('A lead with this name and company already exists.')
+          setSaving(false)
+          return
+        }
+      }
+
+      const { error: dbErr } = await supabase
         .from('scans')
         .insert({
           user_id: user.id,
@@ -289,9 +318,8 @@ async function handleSave(e) {
           raw_contact: form,
           notes: form.notes,
         })
-        .select().single()
       if (dbErr) throw dbErr
-      navigate(`/result/${scan.id}`)
+      navigate('/scans')
     } catch (err) {
       setError('Something went wrong. Please try again.')
     } finally {
