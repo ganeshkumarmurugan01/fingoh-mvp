@@ -27,7 +27,7 @@ export default function Result() {
   const navigate = useNavigate()
   const [scan, setScan]           = useState(null)
   const [loading, setLoading]     = useState(true)
-  const [manualScore, setManual]  = useState(3)
+  const [manualScore, setManual]  = useState(null)
   const [selTypes, setSelTypes]   = useState([])
   const [sigs, setSigs]           = useState({returnVisit:false,demoAttended:false,badgeScanned:false,meetingBooked:false})
   const [urgency, setUrgency]     = useState(null)
@@ -130,7 +130,7 @@ export default function Result() {
   if (loading) return <div style={{background:'#0D1B3E',minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',color:'white'}}>Loading…</div>
   if (!scan)   return <div style={{background:'#0D1B3E',minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',color:'white'}}>Lead not found</div>
 
-  const tier = MANUAL_TIERS[manualScore] || MANUAL_TIERS[3]
+  const tier = MANUAL_TIERS[manualScore] || null
   const pt   = analysis ? (PHARMA_TIER[analysis.ieiTier]||PHARMA_TIER.T4) : null
 
   return (
@@ -147,8 +147,8 @@ export default function Result() {
 
         {/* IEI Score card */}
         <div style={{background:'white',borderRadius:14,padding:'16px',boxShadow:'0 1px 4px rgba(0,0,0,0.07)'}}>
-          <div style={{fontSize:11,color:'#888',textTransform:'uppercase',letterSpacing:'0.6px',marginBottom:12}}>IEI Score</div>
-          <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:14}}>
+          <div style={{fontSize:11,color:'#888',textTransform:'uppercase',letterSpacing:'0.6px',marginBottom:12}}>Engagement Score</div>
+          {tier && <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:14}}>
             <div style={{width:60,height:60,borderRadius:'50%',background:tier.bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
               <span style={{fontSize:26,fontWeight:900,color:tier.color}}>{manualScore}</span>
             </div>
@@ -156,7 +156,7 @@ export default function Result() {
               <div style={{fontSize:18,fontWeight:800,color:tier.color}}>{tier.label}</div>
               <div style={{fontSize:13,color:'#666',lineHeight:1.4,marginTop:2}}>{tier.desc}</div>
             </div>
-          </div>
+          </div>}
           <div style={{display:'flex',gap:8}}>
             {[1,2,3,4,5].map(n=>(
               <button key={n} onClick={()=>setManual(n)} style={{flex:1,padding:'10px 0',borderRadius:10,border:`2px solid ${manualScore===n?MANUAL_TIERS[n].color:'#E5E7EB'}`,background:manualScore===n?MANUAL_TIERS[n].bg:'white',color:manualScore===n?MANUAL_TIERS[n].color:'#999',fontWeight:700,fontSize:15,cursor:'pointer'}}>
@@ -253,7 +253,7 @@ export default function Result() {
         {analysis && (
           <div style={{background:'white',borderRadius:14,padding:'18px 16px',boxShadow:'0 1px 4px rgba(0,0,0,0.07)'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-              <div style={{fontSize:12,fontWeight:700,color:'#0D1B3E',textTransform:'uppercase',letterSpacing:'0.6px'}}>🧬 Pharma IEI Score</div>
+              <div style={{fontSize:12,fontWeight:700,color:'#0D1B3E',textTransform:'uppercase',letterSpacing:'0.6px'}}>🧬 Pharma Engagement Score</div>
               <button onClick={runAnalysis} disabled={analyzing} style={{background:'none',border:'none',color:'#888',cursor:'pointer',fontSize:13,fontWeight:600}}>{analyzing?'⏳':'↺ Re-run'}</button>
             </div>
             <div style={{display:'flex',alignItems:'flex-end',gap:14,marginBottom:12}}>
